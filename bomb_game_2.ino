@@ -118,7 +118,7 @@ class GameWires{
 int ECHO = 2;
 int TRIGGER = 3;
 int POPPER_PIN = 4;
-int LEDS[] = {5,6,7,8,9,10};
+int WIRES[] = {5,6,7,8,9,10};
 int BUZZER_PIN = 11;
 
 int WIN_LEDS[] = {A0 , A1, A2};
@@ -144,8 +144,8 @@ void setup() {
   for ( int pin : ::LOSE_LEDS){
     pinMode(pin , OUTPUT);
   }
-  for ( int pin : ::LEDS){
-    pinMode(pin , OUTPUT);
+  for ( int pin : ::WIRES){
+    pinMode(pin , INPUT);
   }
 
   pinMode(::BUZZER_PIN , OUTPUT);
