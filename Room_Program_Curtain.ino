@@ -3,18 +3,18 @@
 const int BUTTON_OUTSIDE = 2; // Button to move the curtains outside
 const int BUTTON_INSIDE = 3; // Button to move curtains inside
 const int BUZZER = 4; // Buzzer when opening the curtain
-const int OPEN_PIN = A5 , CLOSE_PIN = A4; // Pins for moving the turbine
-const int PIR_SENSOR = 5; // Sensor for detecting person outside
+const int OPEN_PIN = 5 , CLOSE_PIN = 6; // Pins for moving the turbine
+const int PIR_SENSOR = 7; // Sensor for detecting person outside
 // const int CURTAIN_CONTROLLER = PENDING  // Currently understanding the tools
 
 
-const int BUZZER_SOUND = 1000; // The pitch of the buzzer
-const int TURBINE_SPEED = 100; // Voltage for moving the turbine
+const int BUZZER_SOUND = 325; // The pitch of the buzzer
+const int TURBINE_SPEED = 225; // Voltage for moving the turbine
 bool isCurtainOpen = false; // Use to identify if the curtain is open
-const int buzzerDelay = 500000; // The microsecond for buzzer to sound
+const int buzzerDelay = 250; // The microsecond for buzzer to sound
 bool doneBuzzerDelay = false; // Used to check if done buzzering
 bool doneDetecting = false; // Check if done detecting an object
-const int stopingBuzzerDelay = 2000000; // The microsecond for buzzer to stop sound
+const int stopingBuzzerDelay = 500; // The microsecond for buzzer to stop sound
 int countedDelay = 0; // Used to cound the microsecond pass
 
 bool buttonIsClicked(int pin){
@@ -75,7 +75,7 @@ void loop() {
 
   // check if the buzzer done buzzering
   if (::doneDetecting){
-    if (::countedDelay == ::buzzerDelay){
+    if (::countedDelay == ::buzzerDelay && !::doneBuzzerDelay){
       ::doneBuzzerDelay = true;
       ::countedDelay = 0;
     }
@@ -86,61 +86,68 @@ void loop() {
     }
   }
   
+  Serial.println(countedDelay);
   
-  if (::buttonIsClicked(::BUTTON_INSIDE) || ::buttonIsClicked(::BUTTON_OUTSIDE)){
-    // If the buttons clicked move the curtain based if the curtain is open or close
-    ::isCurtainOpen = !::isCurtainOpen; // Change the moving of the curtain to open or close
+  // if (::buttonIsClicked(::BUTTON_INSIDE) || ::buttonIsClicked(::BUTTON_OUTSIDE)){
+  //   // If the buttons clicked move the curtain based if the curtain is open or close
+  //   ::isCurtainOpen = !::isCurtainOpen; // Change the moving of the curtain to open or close
 
-    // Off the buzzer when the button is clicked
+  //   // Off the buzzer when the button is clicked
     
-    if (::isCurtainOpen){
-      Serial.println("Opening The Curtain ---------> ");
-    } else {
-      Serial.println("Closing The Curtain ---------> ");
-    }
+  //   if (::isCurtainOpen){
+  //     Serial.println("Opening The Curtain ---------> ");
+  //   } else {
+  //     Serial.println("Closing The Curtain ---------> ");
+  //   }
 
-    if (::doneDetecting){
-      ::doneDetecting = false;
-      ::doneBuzzerDelay = false;
-      ::countedDelay = 0;
-      tone(::BUZZER , 1000);
-    }
+  //   if (::doneDetecting){
+  //     ::doneDetecting = false;
+  //     ::doneBuzzerDelay = false;
+  //     ::countedDelay = 0;
+  //     tone(::BUZZER , 1000);
+  //   }
 
-    while (::buttonIsClicked(::BUTTON_OUTSIDE)){
-      // Move the curtain until not pressed the Button Outside
-      if (::isCurtainOpen){
-        // If the is opening, Make sound to alert the inside
-        tone(::BUZZER, ::BUZZER_SOUND);
-      }
-      // Put here the code of moving the servor motor
-      if (::isCurtainOpen){
-        digitalWrite(::OPEN_PIN , ::TURBINE_SPEED);
-      } else {
-        digitalWrite(::CLOSE_PIN , ::TURBINE_SPEED);
-      }
-    }
+  //   while (::buttonIsClicked(::BUTTON_OUTSIDE)){
+  //     Serial.println("Moving The Curtain Using OUTSIDE BUTTON ");
+  //     // Move the curtain until not pressed the Button Outside
+  //     if (::isCurtainOpen){
+  //       // If the is opening, Make sound to alert the inside
+  //       tone(::BUZZER, ::BUZZER_SOUND);
+  //     }
+  //     // Put here the code of moving the servor motor
+  //     if (::isCurtainOpen){
+  //       Serial.println("Opening Curtain");
+  //       digitalWrite(::OPEN_PIN , HIGH);
+  //     } else {
+  //       Serial.println("Closing Curtain");
+  //       digitalWrite(::CLOSE_PIN , HIGH);
+  //     }
+  //   }
 
-    while (::buttonIsClicked(::BUTTON_INSIDE)){
-      // Move the curtain until not pressed the Button Outside
-      if (::isCurtainOpen){
-        // If the is opening, Make sound to alert the inside
-        tone(::BUZZER, ::BUZZER_SOUND);
-      }
-      // Put here the code of moving the servor motor
-      if (::isCurtainOpen){
-        digitalWrite(::OPEN_PIN , ::TURBINE_SPEED);
-      } else {
-        digitalWrite(::CLOSE_PIN , ::TURBINE_SPEED);
-      }
-    }
+  //   while (::buttonIsClicked(::BUTTON_INSIDE)){
+  //     Serial.println("Moving The Curtain Using INSIDE BUTTON ");
+  //     // Move the curtain until not pressed the Button Outside
+  //     if (::isCurtainOpen){
+  //       // If the is opening, Make sound to alert the inside
+  //       tone(::BUZZER, ::BUZZER_SOUND);
+  //     }
+  //     // Put here the code of moving the servor motor
+  //     if (::isCurtainOpen){
+  //       Serial.println("Opening Curtain");
+  //       digitalWrite(::OPEN_PIN , HIGH);
+  //     } else {
+  //       Serial.println("Closing Curtain");
+  //       digitalWrite(::CLOSE_PIN , HIGH);
+  //     }
+  //   }
 
-    noTone(::BUZZER); // Done using buzzer
+  //   noTone(::BUZZER); // Done using buzzer
 
-  } else {
-    // Stop the moving of the Curtain
-    digitalWrite(::OPEN_PIN, LOW);
-    digitalWrite(::CLOSE_PIN , LOW);
-  }
+  // } else {
+  //   // Stop the moving of the Curtain
+  //   digitalWrite(::OPEN_PIN, LOW);
+  //   digitalWrite(::CLOSE_PIN , LOW);
+  // }
 
 
 

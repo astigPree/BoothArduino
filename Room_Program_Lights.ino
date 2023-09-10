@@ -8,8 +8,14 @@
 const int ECHO = 2, TRIGGER = 3; // Pins for handling the lights inside the room
 const int BUTTON = 4; // Button pin for force off or on the lights inside the room
 const int LEDS[] = { A5 , A4 , A3 , A2 }; // ( Red , Blue , Yellow, White )
-const int LAPTOP_RANGE = 225;
+const int LAPTOP_RANGE = 10;
 int light_turn = 0; // Represent the light turn, 0 = off, 1 = Sleeping , 2 = Active , 3 = Random
+int clickDelay = 30; // microsecond delay from button
+int clickCounter = 0; // microsecond counter from button
+int isActionIsButton = false; // if the action is in the button
+int detectDelay = 50; // microsecond delay from button
+int detectCounter = 0; // microsecond counter from button
+int isActionIsDetection = false; // if the action is in the button
 /*
   The leds must have different colors ( Red , Blue , Yellow, White )
 
@@ -17,30 +23,32 @@ int light_turn = 0; // Represent the light turn, 0 = off, 1 = Sleeping , 2 = Act
      Deep Red = 225 , 25 , 0 , 0
      Warm White = 0 , 100 , 50 , 225
      Peach = 100 , 0 , 225, 0
-     Burnt Orange = 225 , 100 , 225 , 0
+     Burnt Orange = 225, 150 , 225, 0
 
   Nightime Activity Color:
-    Daylight = 0 , 0, 100, 0 , 225
-    Art Galleries = 0 , 100 , 70 , 225
-    Workspaces = 0 , 50 , 30 , 225
+    Daylight =  0, 100, 0 , 225
+    Art Galleries = 0 , 180 , 120 , 225
+    Workspaces = 0 , 150 , 100 , 225
     Fluorescent Lights = 0 , 150, 0 , 225
 
   Random Color :
     just randomize color intensity
 
 */
+
 const int SLEEPING_COLOR[4][4] = {
-  {0, 100, 0 , 225},
-  {0 , 100, 50, 225},
-  {100 , 0 , 225 , 0},
-  {225, 100 , 225, 0}
+  {225 , 180 , 0 , 0},
+  {0 , 190, 150, 225},
+  {180 , 0 , 225 , 0},
+  {225, 150 , 225, 0}
 };
 
+int activityPins[] = { 5 , 6 , 7 , 8 , 9 , 10 };
 const int ACTIVE_COLOR[4][4] = {
-  {225 , 25, 0 , 0},
-  {0 , 100 , 70 , 225},
-  {0 , 50 , 30 , 225},
-  {0 , 150, 0 , 225}
+  {0 , 0, 0 , 225},
+  {0 , 180 , 150 , 225},
+  {0 , 150 , 120 , 225},
+  {0 , 180, 0 , 225}
 };
 
 bool isClicked(int pin){
@@ -103,6 +111,8 @@ void setup() {
   pinMode(::TRIGGER, OUTPUT);
   pinMode(::ECHO , INPUT);
 
+  Serial.begin(9600);
+
 }
 
 void loop() {
@@ -110,19 +120,61 @@ void loop() {
 
   ::sensor.detect(); // check if using laptop
 
-  if (::isClicked(::BUTTON) || ::sensor.detected){
+  bool clicked = false;
+  if (!::isActionIsButton){
+    clicked = ::isClicked(::BUTTON);
+    if (clicked){
+      ::isActionIsButton = true;
+    }
+  } else {
+    delayMicroseconds(1);
+    ::clickCounter = ::clickCounter + 1;
+    if (::clickCounter == ::clickDelay){
+      ::isActionIsButton = false;
+      ::clickCounter = 0;
+    }
+    Serial.println("Button Counter : " + (String)::clickCounter);
+  }
+
+  bool detect = false;
+  if (!::isActionIsDetection){
+    detect = ::sensor.detected;
+    if (detect){
+      ::isActionIsDetection = true;
+    }
+  } else {
+    delayMicroseconds(1);
+    ::detectCounter = ::detectCounter + 1;
+    if (::detectCounter == ::detectDelay){
+      ::isActionIsDetection = false;
+      ::detectCounter = 0;
+    }
+    Serial.println("Detect Counter : " + (String)::detectCounter);
+  }
+  
+  if ( clicked || detect ){
     // If clicked , Start the activity
 
-    if (::light_turn < 4){
+    
       // Change every turn when clicked
-      ::light_turn = ::light_turn + 1;
-    } else {
+    ::light_turn = ::light_turn + 1;
+    if (::light_turn > 3){
       ::light_turn = 0;
     }
 
     if (::sensor.detected){
       // Convert to active if detected using laptop
       ::light_turn = 2;
+      
+      // On the Active Lights
+      for (int led : ::activityPins){
+        digitalWrite(led , HIGH);
+      }
+    } else {
+      // On the Active Lights
+      for (int led : ::activityPins){
+        digitalWrite(led , LOW);
+      }
     }
 
     
@@ -132,12 +184,14 @@ void loop() {
       for ( int i = 0 ; i < 4 ; i++ ){
         analogWrite( ::LEDS[i] ,::SLEEPING_COLOR[pos][i]);
       }
+      Serial.println("Night Time ... : " + (String)pos);
     } else if ( ::light_turn == 2){
       // Active Lights open
       int pos = random(0,4);
       for ( int i = 0 ; i < 4 ; i++ ){
         analogWrite( ::LEDS[i] ,::ACTIVE_COLOR[pos][i]);
       }
+      Serial.println("Active Time ... : " + (String)pos);
     } else if ( ::light_turn == 3 ){
       // Random Lights Open
       int val1 = random(0 , 225);
@@ -148,15 +202,18 @@ void loop() {
       analogWrite( ::LEDS[1] , val2 );
       analogWrite( ::LEDS[2] , val3 );
       analogWrite( ::LEDS[3] , val4 );
+      
+      Serial.println("Random Time ..." + (String)val1 + ", " + (String)val2 + ", " + (String)val3 + ", " + (String)val4 );
     } else {
       // Close lights 
       analogWrite( ::LEDS[0] , 0 );
       analogWrite( ::LEDS[1] , 0 );
       analogWrite( ::LEDS[2] , 0 );
       analogWrite( ::LEDS[3] , 0 );
+      Serial.println("Close Time ...");
     }
     
-  } 
+  }
 
 
 }
