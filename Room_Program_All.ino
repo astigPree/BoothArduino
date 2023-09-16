@@ -67,14 +67,16 @@ const int FAN_BUTTON = 7; // Button to open the celling fan
 const int FAN_TRANSISTOR = 8; // Transistor pin to control the flow of volts
 const int PIR_SENSOR = 9; // Pin for sensoring outside person
 const int BUZZER_PIN = 10; // Pin for buzzering when sensor detected
+const int OUTSIDE_LIGHTS = 11 // Pin for outside lights when sensor detected someone
 
 bool isFanOpen = false; // Use to check if the fan button is clicked
-const int BUZZER_SOUND = 325; // The pitch of the buzzer
+const int BUZZER_SOUND = 440 ; // The pitch of the buzzer
 const int buzzerDelay = 150; // The microsecond for buzzer to sound
 bool doneBuzzerDelay = false; // Used to check if done buzzering
 bool doneDetecting = false; // Check if done detecting an object
 const int stopingBuzzerDelay = 350; // The microsecond for buzzer to stop sound
 int countedDelay = 0; // Used to cound the microsecond pass
+
 
 bool detected(){
   if ( digitalRead(::PIR_SENSOR) == HIGH){
@@ -216,9 +218,12 @@ void loop() {
     // check if detected
     Serial.println("Detecting .... ");
     if (::detected()){
-      // if person detected make sound
+      // if person detected make sound and on the outside lights 
       ::doneDetecting = true;
       ::countedDelay = 0;
+      digitalWrite(::OUTSIDE_LIGHTS , HIGH); // On lights
+    } else {
+      digitalWrite(::OUTSIDE_LIGHTS , LOW); // Off lights
     }
   }
 
