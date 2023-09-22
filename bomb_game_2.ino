@@ -16,6 +16,13 @@
 
 #include <Servo.h>
 
+int wireSelections[20][3] = {
+  {5, 6, 7}, {5, 6, 8}, {5, 6, 9}, {5, 6, 10}, {5, 7, 8},
+  {5, 7, 9}, {5, 7, 10}, {5, 8, 9}, {5, 8, 10}, {5, 9, 10},
+  {6, 7, 8}, {6, 7, 9}, {6, 7, 10}, {6, 8, 9}, {6, 8, 10},
+  {6, 9, 10}, {7, 8, 9}, {7, 8, 10}, {7, 9, 10}, {8, 9, 10}
+};
+
 void delayServoMovement(Servo servo, int startPos , int endPos , int delayNum = 3){
   for ( startPos ; startPos <= endPos ; startPos++ ){
     servo.write(startPos);
@@ -35,6 +42,8 @@ bool isCutOff(int pin){
 }
 
 class CustomSensor {
+
+public:
   int echo = 0;
   int trig = 0;
   int range = 0;
@@ -64,6 +73,8 @@ class CustomSensor {
 };
 
 class CustomTimer{
+
+public:
   int timer_pin = 0;
   int timer_time = 0;
   int buzzer_sound = 0 , incresed_volume = 5;
@@ -87,6 +98,7 @@ class CustomTimer{
 
 class GameWires{
 
+public:
   int wires[6];
   int correct_wires[3], wrong_wires[3];
 
@@ -96,36 +108,47 @@ class GameWires{
     }
   }
 
-  void setTheCorrectWires( int pins[3] ){
-    int numberOfSet = 0;
-    for (int i = 0; i < 6 ; i++ ){
-      bool setted = false;
-      for ( int j = 0 ; j < 3 ; j++ ){
-        if (wires[i] == pins[j]){
-          correct_wires[numberOfSet] = wires[j];
-          setted = true;
+  void setTheCorrectWires(){
+    int selected = random(0, 19);
+    for ( size_t i = 0 ; i < 3 ; i++){
+      correct_wires[i] = ::wireSelections[selected][i];
+    }
+
+    size_t wireUsed = 0; // check how many used wires to handle distributing wrong wires
+    for (size_t i = 0; i < 6 ; i++ ){
+      int correct = false; // check if in the correct_wires
+      for (size_t j = 0; j < 3 ; j++ ){
+        if (correct_wires[j] == wires[i]){
+          correct = true;
         }
       }
-      if (!setted){
-        
+      if (!correct && wireUsed < 3){
+        wrong_wires[wireUsed] = wires[i];
+        wireUsed = wireUsed + 1;
       }
-
     }
+
   }
 
 };
 
-int ECHO = 2;
-int TRIGGER = 3;
-int POPPER_PIN = 4;
-int WIRES[] = {5,6,7,8,9,10};
-int BUZZER_PIN = 11;
+int ECHO = 2; // Use for sensor
+int TRIGGER = 3; // Use for sensor
+int POPPER_PIN = 4; // Use for servo
+int WIRES[] = {5,6,7,8,9,10}; // Wires available
+int BUZZER_PIN = 11; // Buzzer used for timer ( lower to higher sound)
 
-int WIN_LEDS[] = {A0 , A1, A2};
-int LOSE_LEDS[] = {A3 , A4, A5};
+int WIN_LEDS[] = {A0 , A1, A2}; // Leds for the winning strikes 
+int LOSE_LEDS[] = {A3 , A4, A5}; // Leds for the lossing strikes
+
+int TIME = 6000; // The minimum time for playing
+
+CustomSensor sensor(::ECHO, ::TRIGGER, 10); // sensor object
+GameWires gWires(::WIRES); // wires game logic object
+CustomTimer cTimer(::BUZZER_PIN, 20); // buzzer timer object
 
 Servo popper;
-int POPPER_START_POS = 0 , POPPER_END_POS = 90;
+int POPPER_START_POS = 0 , POPPER_END_POS = 90; // The angle of servo when popping a ballon
 
 
 void setup() {
@@ -160,6 +183,12 @@ void loop() {
   // put your main code here, to run repeatedly:
   
   ::popper.write(POPPER_START_POS); // Put the servo back to its position
+
+  ::sensor.detect(); // Check if there is a player hand , then start the timer
+
+  if (::sensor.detected){
+    
+  }
   
 
 }
