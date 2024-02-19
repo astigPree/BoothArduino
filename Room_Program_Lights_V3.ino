@@ -4,8 +4,7 @@
     then if I Click again it open the serialized lights until it close
 */
 
-const int BUTTON_2 = 4; // Button pin for opening and closing the serialized lights
-const int BUTTON_1 = 5; // Button pin for opening and closing the night time activity lights
+const int BUTTON = 5; // Button pin for opening and closing the activity lights
 const int NIGHT_ACTIVITY_TRANSISTOR = 6; // Transistor to handle 5 volts to night time activity lights
 
 const int LEDS[] = { A5 , A4 , A3 , A2 }; // ( Red , Blue , Yellow, White )
@@ -56,8 +55,7 @@ void setup() {
     pinMode(pin , OUTPUT);
   }
 
-  pinMode(::BUTTON_1 , INPUT);
-  pinMode(::BUTTON_2 , INPUT);
+  pinMode(::BUTTON , INPUT);
 
   Serial.begin(9600);
 
@@ -69,7 +67,7 @@ void loop() {
   // Night Time Activity Logic
   bool clicked = false; 
   if (!::isActionIsButton){
-    clicked = ::isClicked(::BUTTON_1);
+    clicked = ::isClicked(::BUTTON);
     if (clicked){
       ::isActionIsButton = true;
     }
